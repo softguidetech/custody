@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="custody_clear_team_tree" model="ir.ui.view">
+            <field name="name">custody.clear.team.custom.tree</field>
+            <field name="model">custody.clear.team.custom</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="active" invisible="True"/>
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="custody_clear_team_form" model="ir.ui.view">
+            <field name="name">custody.clear.team.custom.form</field>
+            <field name="model">custody.clear.team.custom</field>
+            <field name="arch" type="xml">
+                <form string="Custody Team" class="o_sale_team">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="user_id" domain="[('share', '=', False)]" widget="many2one_avatar_user"/>
+                            </group>
+                            <group>
+                                <field name="company_id" groups="base.group_multi_company"
+                                       options="{'no_create': True}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="lock_amount_total"/>
+                            </group>
+                            <group></group>
+                        </group>
+                        <notebook>
+                            <page name="approvers" string="Approvers">
+                                <field name="approver_ids" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="user_id"/>
+                                        <field name="role"/>
+                                        <field name="min_amount"/>
+                                        <field name="max_amount"/>
+                                        <field name="company_currency_id" invisible="True"/>
+                                        <field name="lock_amount_total"/>
+                                        <field name="custom_condition_code"/>
+                                    </tree>
+                                </field>
+
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--        <record id="view_sale_order_filter_approver" model="ir.ui.view">-->
+        <!--            <field name="inherit_id" ref="sale.sale_order_view_search_inherit_quotation"/>-->
+        <!--            <field name="name">view_sale_order_filter_approver</field>-->
+        <!--            <field name="model">sale.order</field>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <filter name="state" position="before">-->
+        <!--                    <filter name="waiting_for_approval" string="Waiting for Approval"-->
+        <!--                            domain="[('current_approver', '!=', False)]"/>-->
+        <!--                    <filter name="waiting_for_my_approval" string="Waiting for My Approval"-->
+        <!--                            domain="[('current_approver', '!=', False), ('current_approver.user_id', '=', uid)]"/>-->
+        <!--                    <separator/>-->
+        <!--                </filter>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
+
+
+        <record id="custody_clear_approval_form" model="ir.ui.view">
+            <field name="name">custody.clear.approval.form</field>
+            <field name="inherit_id" ref="custody_clear_request.custody_clear_request_form"/>
+            <field name="model">custody.clear.request</field>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='confirm_post']" position="after">
+                    <button name="button_approve" icon = "fa-check-circle" class="btn-primary" string="Approve" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
+                    <button name="reject" icon="fa-ban" string="Reject Request" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
+                </xpath>
+                <xpath expr="//field[@name='amount']" position="after">
+                    <field name="custody_approval_route" invisible="True"/>
+                    <field name="is_current_approver" />
+                    <field name="team_custom_id" required="1"/>
+
+                </xpath>
+                <xpath expr="//field[@name='state']" position="replace">
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to approve,sale,done,cancel"/>
+                </xpath>
+                <xpath expr="//button[@name='reject']" position="attributes">
+                    <attribute name="attrs">{'invisible' : ['|',('state', 'not in', ['to approve','sale','sent']),('is_current_approver', '=', False)]}</attribute>
+                </xpath>
+
+
+                <xpath expr="//notebook" position="inside">
+                    <page name="approval_route" string="Approval Route" attrs="{'invisible':[('team_custom_id', '=', False)]}">
+                        <field name="approver_ids">
+                            <tree>
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <field name="role"/>
+                                <field name="state" widget="badge" decoration-info="state == 'rejected'" decoration-danger="state == 'pending'" decoration-success="state == 'approved'"/>
+                            </tree>
+                        </field>
+                        <field name="is_current_approver" invisible="True"/>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>
