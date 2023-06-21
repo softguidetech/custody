@@ -13,7 +13,7 @@
         'views/res_config_settings_views.xml',
         'reports/custody_report.xml',
     ],
-    'depends': ['base','account','analytic', 'check_followup','purchase'],
+    'depends': ['base','account','analytic', 'purchase'],
 
 
 
