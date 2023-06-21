@@ -9,21 +9,21 @@
 
         <record id="group_custody_clear_dm" model="res.groups">
         <field name="name">1-Submission</field>
-        <field name="category_id" ref="custody_clear_request.module_category_custody_clear_request"/>
+        <field name="category_id" ref="module_category_custody_clear_request"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         <field name="comment">the user will be able to custody Request created by employees.</field>
     </record>
 
          <record id="group_custody_clear_am" model="res.groups">
         <field name="name">2-Confirmation</field>
-        <field name="category_id" ref="custody_clear_request.module_category_custody_clear_request"/>
+        <field name="category_id" ref="module_category_custody_clear_request"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         <field name="comment">the user will be able to custody Request created by employees.</field>
     </record>
 
          <record id="group_custody_clear_fm" model="res.groups">
         <field name="name">3-Approval</field>
-        <field name="category_id" ref="custody_clear_request.module_category_custody_clear_request"/>
+        <field name="category_id" ref="module_category_custody_clear_request"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         <field name="comment">the user will be able to custody Request created by employees.</field>
     </record>
