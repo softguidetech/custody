@@ -86,11 +86,8 @@
             <field name="model">custody.clear.request</field>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='confirm_post']" position="after">
-                    <button name="button_approve" class="oe_highlight" string="Approve"  attrs="{'invisible':['|',('is_current_approver', '=', False),('state','=','cancel')]}" type="object"/>
-                    <button name="button_reject" string="Reject" attrs="{'invisible':['|',('is_current_approver', '=', False),('state','=','cancel')]}" type="object"/>
-
-                    <!--                        <attribute name="groups"></attribute>-->
-<!--                        <attribute name="attrs">{'invisible':['|', ('is_current_approver', '=', False)]}</attribute>-->
+                    <button name="button_approve" icon = "fa-check-circle" class="btn-primary" string="Approve" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
+                    <button name="reject" icon="fa-ban" string="Reject Request" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
                 </xpath>
                 <xpath expr="//field[@name='amount']" position="after">
                     <field name="custody_approval_route" invisible="True"/>

@@ -31,20 +31,5 @@
                 </a>
             </p>
         </template>
-
-        <template id="order_reject">
-            <p>
-                Dear
-                <t t-esc="object.user_id.sudo().name if object.user_id else object.create_uid.sudo().name"/>,
-            </p>
-            <p>
-                Cash Reconcile "<t t-esc="object.name"/>" was Rejected.
-            </p>
-            <p>
-                <a t-att-href="'/mail/view?model=%s&amp;res_id=%s' % (object._name, object.id)">
-                    View Cash Reconcile
-                </a>
-            </p>
-        </template>
     </data>
 </odoo>

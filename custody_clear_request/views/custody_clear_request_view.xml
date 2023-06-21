@@ -22,10 +22,10 @@
             <field name="model">custody.clear.request</field>
             <field name="arch" type="xml">
                 <tree>
-                   <field name="name"/>
+                    <field name="name"/>
                     <field name="custody_date"/>
                     <field name="user_name" widget="many2one_avatar_user"/>
-                     <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-danger="state == 'to approve'" decoration-success="state == 'done'"/>
+                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-danger="state == 'to approve'" decoration-success="state == 'done'"/>
                     <field name="amount" widget="badge" decoration-info="amount &gt; 0" sum="total amount"/>
 
                 </tree>
@@ -39,7 +39,7 @@
                 <tree  create="false" edit="false" delete="false">
                     <field name="user_name" widget="many2one_avatar_user"/>
                     <field name="name"/>
-<!--                    <field name="doc_attachment_id" widget="many2many_binary"/>-->
+                    <!--                    <field name="doc_attachment_id" widget="many2many_binary"/>-->
                     <field name="analytic_accont_id"/>
                     <field name="state"/>
                     <field name="amount" sum="Total Expenses"/>
@@ -99,13 +99,13 @@
                         <!--<h3><field name="total_history_amount"/></h3>-->
                         <!--</div>-->
                         <!--</group>-->
-                        <group string="Details" col="2" colspan="2">
+                        <group string="Details">
                             <field name="user_name" widget="many2one_avatar_user"/>
-<!--                            <field name="request_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
+                            <!--                            <field name="request_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
                             <field name="custody_date" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-                            <field name="amount"/>
-<!--                            <field name="num2wo" readonly="1"/>-->
-                            <!--                            <field name="currency_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
+                            <field name="attachment" attrs="{'readonly': [('state','!=','draft')],'required': [('state','=','draft')]}"/>
+                            <field name="notes" attrs="{'readonly': [('state','!=','draft')],'required': [('state','=','draft')]}"/>
+                            <field name="amount" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field name="company_id" readonly="1" invisible="1"/>
                             <field name="total_request_amount" readonly="1"/>
 
@@ -116,17 +116,11 @@
                                 <field name="custody_line_ids" >
                                     <tree editable="bottom">
                                         <field name="state" invisible="1"/>
-                                        <field name="product_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-                                        <field name="name" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-                                        <field name="date" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-                                        <!--                                        <field name="partner_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
-                                        <!--                                        <field name="currency_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
-                                        <!--<field name="tax_id" options="{'no_create': True}"/>-->
-<!--                                        <field name="doc_attachment_id" widget="many2many_binary" attrs="{'readonly': [('state','not in',['draft'])]}"/>-->
+                                        <field name="product_id" />
+                                        <field name="name" />
+                                        <field name="date" />
                                         <field name="account_id"/>
-                                        <!--<field name="analytic_accont_id" groups="custody_clear_request.group_custody_clear_am" />-->
-                                        <field name="amount" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-
+                                        <field name="amount"/>
                                     </tree>
                                 </field>
                                 <group class="oe_subtotal_footer oe_right">
@@ -178,7 +172,7 @@
             <field name="name">All Reconcile</field>
             <field name="res_model">custody.clear.request</field>
             <!--            <field name="view_type">form</field>-->
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
             <field name="context">{'search_default_my_request': 1}</field>
         </record>
 
@@ -186,7 +180,7 @@
             <field name="name">Reconcile Direct Manager Approval</field>
             <field name="res_model">custody.clear.request</field>
             <!--            <field name="view_type">form</field>-->
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[('state', '=', 'dm')]</field>
             <field name="context">{'search_default_today': 1}</field>
 
@@ -196,7 +190,7 @@
             <field name="name">Reconcile Account Manager Approval</field>
             <field name="res_model">custody.clear.request</field>
             <!--            <field name="view_type">form</field>-->
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[('state', '=', 'am')]</field>
         </record>
 
@@ -204,7 +198,7 @@
             <field name="name">Reconcile Finance Manager Approval</field>
             <field name="res_model">custody.clear.request</field>
             <!--            <field name="view_type">form</field>-->
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[('state', '=', 'fm')]</field>
         </record>
 
@@ -212,7 +206,7 @@
             <field name="name">Reconcile Posted </field>
             <field name="res_model">custody.clear.request</field>
             <!--            <field name="view_type">form</field>-->
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[('state', '=', 'post')]</field>
             <field name="context">{'search_default_my_request': 1}</field>
 
@@ -253,54 +247,54 @@
         <!--&lt;!&ndash;<field name="context">{'search_default_my_request': 1}</field>&ndash;&gt;-->
         <!--</record>-->
 
-        <record model="ir.ui.view" id="petty_cash_reconcile_kanban_view">
-            <field name="name">Petty Cash reconcile Kanban</field>
-            <field name="model">custody.clear.request</field>
-            <field name="arch" type="xml">
-                <kanban class="o_res_partner_kanban" create="true">
-                    <field name="name"/>
-                    <field name="user_name" widget="many2one_avatar_user"/>
-                    <field name="custody_date"/>
-                    <field name="amount"/>
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div class="oe_kanban_global_click">
-                                <div class="o_kanban_record_top">
-                                    <div class="o_kanban_record_headings">
-                                        <strong class="o_kanban_record_title">
-                                            <field name="name"/>
-                                        </strong>
-                                        <strong class="o_kanban_record_subtitle"><field name="user_name"/></strong>
-                                        <strong class="o_kanban_record_subtitle"><field name="amount"/></strong>
-                                    </div>
-                                </div>
-                                <strong style="color:blue;"><field name="custody_date"/></strong><br></br>
-                                <strong style="color:green;">State / <field name="state" /></strong>
+        <!--        <record model="ir.ui.view" id="petty_cash_reconcile_kanban_view">-->
+        <!--            <field name="name">Petty Cash reconcile Kanban</field>-->
+        <!--            <field name="model">custody.clear.request</field>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <kanban class="o_res_partner_kanban" create="true">-->
+        <!--                    <field name="name"/>-->
+        <!--                    <field name="user_name" widget="many2one_avatar_user"/>-->
+        <!--                    <field name="custody_date"/>-->
+        <!--                    <field name="amount"/>-->
+        <!--                    <templates>-->
+        <!--                        <t t-name="kanban-box">-->
+        <!--                            <div class="oe_kanban_global_click">-->
+        <!--                                <div class="o_kanban_record_top">-->
+        <!--                                    <div class="o_kanban_record_headings">-->
+        <!--                                        <strong class="o_kanban_record_title">-->
+        <!--                                            <field name="name"/>-->
+        <!--                                        </strong>-->
+        <!--                                        <strong class="o_kanban_record_subtitle"><field name="user_name"/></strong>-->
+        <!--                                        <strong class="o_kanban_record_subtitle"><field name="amount"/></strong>-->
+        <!--                                    </div>-->
+        <!--                                </div>-->
+        <!--                                <strong style="color:blue;"><field name="custody_date"/></strong><br></br>-->
+        <!--                                <strong style="color:green;">State / <field name="state" /></strong>-->
 
-                            </div>
-                        </t>
-                    </templates>
-                </kanban>
-            </field>
-        </record>
+        <!--                            </div>-->
+        <!--                        </t>-->
+        <!--                    </templates>-->
+        <!--                </kanban>-->
+        <!--            </field>-->
+        <!--        </record>-->
 
-<!--        <record id="custody_request)inherit_form" model="ir.ui.view">-->
-<!--            <field name="name">custody.request.form.inherit</field>-->
-<!--            <field name="model">custody.request</field>-->
-<!--            <field name="inherit_id" ref="custody_request.custody_request_form"/>-->
-<!--            <field name="arch" type="xml">-->
-<!--                <xpath expr="//button[@name='action_journal_entry']" position="before">-->
-<!--                    <button type="object" name="action_reconcile_request" class="oe_stat_button"-->
-<!--                            icon="fa-check-square">-->
-<!--                        <field name="clear_num" widget="statinfo" string="Reconcile"/>-->
-<!--                    </button>-->
-<!--                </xpath>-->
+        <!--        <record id="custody_request)inherit_form" model="ir.ui.view">-->
+        <!--            <field name="name">custody.request.form.inherit</field>-->
+        <!--            <field name="model">custody.request</field>-->
+        <!--            <field name="inherit_id" ref="custody_request.custody_request_form"/>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <xpath expr="//button[@name='action_journal_entry']" position="before">-->
+        <!--                    <button type="object" name="action_reconcile_request" class="oe_stat_button"-->
+        <!--                            icon="fa-check-square">-->
+        <!--                        <field name="clear_num" widget="statinfo" string="Reconcile"/>-->
+        <!--                    </button>-->
+        <!--                </xpath>-->
 
-<!--            </field>-->
-<!--        </record>-->
+        <!--            </field>-->
+        <!--        </record>-->
 
         <!--<menuitem id="custody_clear_request_root" name="Reconcile Request" groups="base.group_user"/>-->
-         <record id="custody_clear_team_act_window" model="ir.actions.act_window">
+        <record id="custody_clear_team_act_window" model="ir.actions.act_window">
             <field name="name">Custody clear Teams</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">custody.clear.team.custom</field>
@@ -317,17 +311,17 @@
 
         <menuitem web_icon="account,static/description/icon.png" id="petty_cash_root" name="Petty cash" />
 
-        <menuitem id="custody_clear_request_ch1" name="Cash Reconcile" parent="petty_cash_root"
+        <menuitem id="custody_clear_request_ch1" name="Cash Reconcile / طلب تصفية" parent="petty_cash_root"
                   sequence="3" groups="base.group_user" action="custody_clear_request_ac"/>
 
-        <menuitem id="custody_request_ch1" name="Cash Request" parent="petty_cash_root"
+        <menuitem id="custody_request_ch1" name="Cash Request / طلب عهدة" parent="petty_cash_root"
                   sequence="1" action="custody_request.custody_request_ac"/>
 
-         <menuitem name="Custody Teams" id="custody_team_menu" action="custody_request.custody_team_act_window"
-                  parent="petty_cash_root" sequence="50" groups="custody_request.group_custody_manager"/>
+        <menuitem name="Custody Teams" id="custody_team_menu" action="custody_request.custody_team_act_window"
+                  parent="petty_cash_root" sequence="50" groups="base.group_erp_manager"/>
 
         <menuitem name="Custody Clear Teams" id="custody_clear_team_menu" action="custody_clear_request.custody_clear_team_act_window"
-                  parent="petty_cash_root" sequence="51" groups="custody_clear_request.group_custody_clear_manager"/>
+                  parent="petty_cash_root" sequence="51" groups="base.group_erp_manager"/>
 
 
         <!--<menuitem id="report_root" name="Report" parent="custody_request.custody_request_root"-->
