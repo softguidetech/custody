@@ -62,6 +62,21 @@
             </field>
         </record>
 
+        <!--        <record id="view_sale_order_filter_approver" model="ir.ui.view">-->
+        <!--            <field name="inherit_id" ref="sale.sale_order_view_search_inherit_quotation"/>-->
+        <!--            <field name="name">view_sale_order_filter_approver</field>-->
+        <!--            <field name="model">sale.order</field>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <filter name="state" position="before">-->
+        <!--                    <filter name="waiting_for_approval" string="Waiting for Approval"-->
+        <!--                            domain="[('current_approver', '!=', False)]"/>-->
+        <!--                    <filter name="waiting_for_my_approval" string="Waiting for My Approval"-->
+        <!--                            domain="[('current_approver', '!=', False), ('current_approver.user_id', '=', uid)]"/>-->
+        <!--                    <separator/>-->
+        <!--                </filter>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
         <record id="custody_team_act_window" model="ir.actions.act_window">
             <field name="name">Custody Teams</field>
             <field name="type">ir.actions.act_window</field>
@@ -85,10 +100,9 @@
             <field name="model">custody.request</field>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='confirm_post']" position="after">
-                    <button name="button_approve" class="oe_highlight" string="Approve" attrs="{'invisible':['|',('is_current_approver', '=', False),('state','=','cancel')]}" type="object"/>
-                    <button name="button_reject" string="Reject" attrs="{'invisible':['|',('is_current_approver', '=', False),('state','=','cancel')]}" type="object"/>
-<!--                        <attribute name="groups"></attribute>-->
-<!--                        <attribute name="attrs">{'invisible':['|', ('is_current_approver', '=', False)]}</attribute>-->
+                    <button name="button_approve" icon = "fa-check-circle" class="btn-primary" string="Approve" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
+                    <button name="reject" icon="fa-ban" string="Reject Request" attrs="{'invisible':[('is_current_approver', '=', False)]}" type="object"/>
+
                 </xpath>
                 <xpath expr="//field[@name='amount']" position="after">
                     <field name="custody_approval_route" invisible="True"/>
@@ -99,9 +113,7 @@
                 <xpath expr="//field[@name='state']" position="replace">
                     <field name="state" widget="statusbar" statusbar_visible="draft,to approve,sale,done,cancel"/>
                 </xpath>
-                <xpath expr="//button[@name='reject']" position="attributes">
-                    <attribute name="attrs">{'invisible' : ['|',('state', 'not in', ['to approve','sale','sent']),('is_current_approver', '=', False)]}</attribute>
-                </xpath>
+
 
 
                 <xpath expr="//notebook" position="inside">

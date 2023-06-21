@@ -77,20 +77,6 @@ class CustodyRequest(models.Model):
                         # Do default behaviour to set state as "sale" and update date_approve
                         return super(CustodyRequest, order).confirm_post()
 
-    def button_reject(self):
-        for order in self:
-            partner = order.user_id.partner_id if order.user_id else order.create_uid.partner_id
-            order.message_post_with_view(
-                'custody_request.order_reject',
-                subject=_('Petty Cash Approved: %s') % (order.name,),
-                composition_mode='mass_mail',
-                partner_ids=[(4, partner.id)],
-                auto_delete=True,
-                auto_delete_message=True,
-                parent_id=False,
-                subtype_id=self.env.ref('mail.mt_note').id)
-            order.state = 'cancel'
-
     def confirm_dm(self):
         for order in self:
             # if order.state not in ['draft', 'sent']:

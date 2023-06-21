@@ -7,12 +7,12 @@
                 <t t-esc="object.sudo().current_approver.user_id.name"/>,
             </p>
             <p>
-                You have been requested to approve the Cash Request
+                You have been requested to approve the Petty cash
                 <t t-esc="object.name"/>.
             </p>
             <p>
                 <a t-att-href="'/mail/view?model=%s&amp;res_id=%s' % (object._name, object.id)">
-                    View Cash Request
+                    View Petty Cash
                 </a>
             </p>
         </template>
@@ -23,27 +23,11 @@
                 <t t-esc="object.user_id.sudo().name if object.user_id else object.create_uid.sudo().name"/>,
             </p>
             <p>
-                Cash Request "<t t-esc="object.name"/>" was approved.
+                Petty cash "<t t-esc="object.name"/>" was approved.
             </p>
             <p>
                 <a t-att-href="'/mail/view?model=%s&amp;res_id=%s' % (object._name, object.id)">
-                    View Cash Request
-                </a>
-            </p>
-        </template>
-
-
-        <template id="order_reject">
-            <p>
-                Dear
-                <t t-esc="object.user_id.sudo().name if object.user_id else object.create_uid.sudo().name"/>,
-            </p>
-            <p>
-                Cash Request"<t t-esc="object.name"/>" was Rejected.
-            </p>
-            <p>
-                <a t-att-href="'/mail/view?model=%s&amp;res_id=%s' % (object._name, object.id)">
-                    View Cash Request
+                    View Petty Cash
                 </a>
             </p>
         </template>

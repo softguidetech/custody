@@ -69,12 +69,21 @@ class FinanceApprovalRequest(models.Model):
     name = fields.Char('Reference',readonly=True,default='New')
     description = fields.Char(string='Description')
     user_name = fields.Many2one('res.users', string='User name',readonly=True, default=_default_employee_get)
+    check_date = fields.Date('Cheque Date', )
     num2wo = fields.Char(string="Amount in word", compute='_onchange_amount', store=True)
+    electronig = fields.Boolean(string='Cheque', copy=False)
+    cheque_number = fields.Char('Cheque number')
+    check_count = fields.Integer(compute='_compute_check')
     count_je = fields.Integer(compute='_count_je_compute')
     count_diff = fields.Integer(compute='_count_diff_compute')
+    check_term = fields.Selection([('not_followup', 'Not Follow-up'),
+                                   ('followup', 'Follow-up')
+                                   ],
+                                  default='not_followup', invisible=True)
     person = fields.Char(string= 'Ben', track_visibility='onchange')
 
     bank_template = fields.Many2one(related='journal_id.bank_id')
+    check_id = fields.Many2one('check.followup', string="Check Reference", readonly=True)
     custody_date = fields.Date('Date', default=lambda self: fields.Date.today(),track_visibility='onchange')
     currency_id = fields.Many2one('res.currency', string='Currency',default=default_currency,required=True)
     amount = fields.Monetary('Amount',required=True,track_visibility='onchange')
@@ -95,12 +104,39 @@ class FinanceApprovalRequest(models.Model):
     account_id = fields.Many2one('account.account',compute='_account_compute',string='Custody account')
     user_id = fields.Many2one('res.users', default=default_user_analytic)
     count_journal_entry = fields.Integer(compute='_compute_je')
+    attachment = fields.Binary(string='Attachments / المرفقات')
+    notes = fields.Text(string='Notes / ملاحظات ')
+
+    def recall(self):
+        self.state = 'draft'
 
     def _compute_je(self):
         if self.move_id:
             self.count_journal_entry = 1
         else:
             self.count_journal_entry = 0
+
+    def action_check_view(self):
+        if self.check_date:
+            tree_view_out = self.env.ref('check_followup.view_tree_check_followup_out')
+            form_view_out = self.env.ref('check_followup.view_form_check_followup_out')
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'View Vendor Checks',
+                'res_model': 'check.followup',
+                'view_type': 'form',
+                'view_mode': 'tree,form',
+                'views': [(tree_view_out.id, 'tree'), (form_view_out.id, 'form')],
+                'domain': [('source_document', '=', self.name)],
+
+            }
+    # @api.onchange('custody_journal_id')
+    # def get_desc(self):
+    #     self.description = 'Custody for account' + ' ' + str(self.user_name.name)
+
+    def _compute_check(self):
+        payment_count = self.env['check.followup'].sudo().search_count([('source_document','=',self.name)])
+        self.check_count = payment_count
 
     def _count_je_compute(self):
         for i in self:
@@ -134,6 +170,9 @@ class FinanceApprovalRequest(models.Model):
 
     @api.depends('user_name')
     def _account_compute(self):
+        setting_ob = self.env['res.config.settings'].search([],order='id desc', limit=1)
+        if setting_ob.petty_account_id:
+            self.account_id = setting_ob.petty_account_id
         if not self.company_id.petty_account_id:
             raise ValidationError('Please Insert Petty cash account In Company Configuration')
         else:
@@ -146,6 +185,9 @@ class FinanceApprovalRequest(models.Model):
             raise ValidationError("Please Make Sure Amount Field Grater Than Zero !!")
         if self.env.user.name != self.user_id.name:
             raise ValidationError("Please This Request is not For You")
+        if self.electronig==True:
+            if not self.check_date and not self.check_number:
+                raise ValidationError(_('Please enter cheque date and number'))
         user_fm_ids = self.env['res.users'].sudo().search([('id', 'in', self.users_dm())])
         channel_group_obj = self.env['mail.mail']
         partner_list = []
@@ -235,7 +277,7 @@ class FinanceApprovalRequest(models.Model):
         account_move_object = self.env['account.move']
         if not self.account_id or not self.journal_id:
             raise ValidationError("Please Make Sure Partner Accounting Tab was Entered or Journal !!")
-        if self.account_id and self.journal_id:
+        if self.account_id and self.journal_id and self.electronig==False:
             l = []
             if not self.journal_id:
                 raise ValidationError("Please Fill Accounting Information !!")
@@ -278,6 +320,18 @@ class FinanceApprovalRequest(models.Model):
             self.move_id = account_move_object.create(vals)
             self.move_id.action_post()
             ###############################################
+            # report_ob = self.env['pettycash.report']
+            # report_vals ={
+            #     'company_id': self.company_id.id,
+            #     'currency_id': self.currency_id.id,
+            #     'user_id': self.user_name.id,
+            #     'amount': self.amount,
+            #     'analytic_id': self.analytic_account.id,
+            #     'request_id': self.id,
+            #     'date': self.custody_date,
+            # }
+            # report_ob.sudo().create(report_vals)
+            ###############################################
             channel_group_obj = self.env['mail.mail']
             partner_list = []
             for rec in self.user_name:
@@ -291,6 +345,90 @@ class FinanceApprovalRequest(models.Model):
             mail = channel_group_obj.sudo().create(dic)
             mail.send()
 
+            self.state = 'done'
+
+        if self.account_id and self.journal_id and self.electronig==True:
+            l = []
+            person = self.person
+            check_obj = self.env['check.followup']
+            credit_name = 'Cheque number' + '  ' + self.cheque_number
+            if not self.account_id or not self.journal_id:
+                raise ValidationError("Please Fill Accounting Information !!")
+            # if self.check_term != 'followup':
+            debit_val = {
+                'move_id': self.move_id.id,
+                'name': 'Custody for account' + ' ' + str(self.user_name.name),
+                'account_id': self.account_id.id,
+                'debit': self.get_amount(),
+                # 'analytic_account_id': self.analytic_account.id or False,
+                'currency_id': self.get_currency() or False,
+                'partner_id': self.user_name.partner_id.id,
+                'amount_currency': self.amount_currency_debit() or False,
+                # 'company_id': self.company_id.id,
+
+            }
+            l.append((0, 0, debit_val))
+            credit_val = {
+
+                'move_id': self.move_id.id,
+                'name': 'Custody for account' + ' ' + str(self.user_name.name),
+                'account_id': self.journal_id.out_account.id,
+                'credit': self.get_amount(),
+                'currency_id': self.get_currency() or False,
+                # 'partner_id': self.user_name.partner_id.id,
+                'amount_currency': self.amount_currency_credit() or False,
+                # 'analytic_account_id': ,
+                # 'company_id': ,
+
+            }
+            l.append((0, 0, credit_val))
+            print("List", l)
+            vals = {
+                'journal_id': self.journal_id.id,
+                'date': self.custody_date,
+                'ref': self.name,
+                # 'company_id': ,
+                'line_ids': l,
+            }
+            self.move_id = account_move_object.create(vals)
+            self.move_id.action_post()
+
+            check_val = {
+             'check_created': self.custody_date,
+             'check_date': self.check_date,
+             'cheque_number': self.cheque_number,
+             'source_document': self.name,
+             'beneficiary': person,
+             'currency_id': self.currency_id.id,
+             'amount': self.amount,
+             'state': 'out_standing',
+             'check_type': 'out',
+             'partner_id': self.user_name.partner_id.id,
+             'bank_id': self.journal_id.id,
+             'memo': credit_name,
+             'petty_cash_id': self.id,
+
+            }
+
+            check_id = check_obj.create(check_val)
+
+            log_obj = self.env['check.log']
+            log_obj.create({'move_description': 'Out cheque ',
+                            'move_id': self.move_id.id,
+                            'move_date': self.custody_date,
+                            'check_id': check_id.id, })
+            channel_group_obj = self.env['mail.mail']
+            partner_list = []
+            for rec in self.user_name:
+                partner_list.append(rec.partner_id.id)
+            dic = {
+                'subject': _('Cash Request Approved: %s') % (self.name,),
+                'email_from': self.env.user.login,
+                'body_html': 'Hello, approved petty cash Request with number ' + self.name,
+                'recipient_ids': partner_list,
+            }
+            mail = channel_group_obj.sudo().create(dic)
+            mail.send()
             self.state = 'done'
 
     @api.model
@@ -314,46 +452,36 @@ class FinanceApprovalRequest(models.Model):
         raise ValidationError("Can not Duplicate a Record !!")
 
     def cancel_request(self):
-        if self.custody_journal_id.update_posted == False:
-            raise ValidationError("Please Check Allow Cancel Journal Entry In Journal First !!")
-        else:
+        # if self.custody_journal_id.update_posted == False:
+        #     raise ValidationError("Please Check Allow Cancel Journal Entry In Journal First !!")
+        # else:
             # Cancel JE and Delete it
-            self.move_id.button_cancel()
-            self.move_id.unlink()
-
-            # delete report line
-            report_id = self.env['pettycash.report'].search([('request_id','=',self.id)])
-            report_id.sudo().unlink()
-
-            # Change the state
-            channel_group_obj = self.env['mail.mail']
-            partner_list = []
-            for rec in self.user_name:
-                partner_list.append(rec.partner_id.id)
-            dic = {
-                'subject': _('Cash Request Canceled: %s') % (self.name,),
-                'email_from': self.env.user.login,
-                'body_html': 'Hello, Canceled petty cash Request with number ' + self.name,
-                'recipient_ids': partner_list,
-            }
-            mail = channel_group_obj.sudo().create(dic)
-            mail.send()
-            self.state = 'cancel'
+        # self.move_id.button_cancel()
+        # self.move_id.unlink()
+        #
+        # # delete report line
+        # report_id = self.env['pettycash.report'].search([('request_id','=',self.id)])
+        # report_id.sudo().unlink()
+        #
+        # # Change the state
+        # channel_group_obj = self.env['mail.mail']
+        # partner_list = []
+        # for rec in self.user_name:
+        #     partner_list.append(rec.partner_id.id)
+        # dic = {
+        #     'subject': _('Cash Request Canceled: %s') % (self.name,),
+        #     'email_from': self.env.user.login,
+        #     'body_html': 'Hello, Canceled petty cash Request with number ' + self.name,
+        #     'recipient_ids': partner_list,
+        # }
+        # mail = channel_group_obj.sudo().create(dic)
+        # mail.send()
+        self.state = 'cancel'
 
     def reject(self):
-        channel_group_obj = self.env['mail.mail']
-        partner_list = []
-        for rec in self.user_name:
-            partner_list.append(rec.partner_id.id)
-        dic = {
-            'subject': _('Cash Request Canceled: %s') % (self.name,),
-            'email_from': self.env.user.login,
-            'body_html': 'Hello, Canceled petty cash Request with number ' + self.name,
-            'recipient_ids': partner_list,
-        }
-        mail = channel_group_obj.sudo().create(dic)
-        mail.send()
-        self.state = 'cancel'
+        for i in self.approver_ids:
+            i.unlink()
+        self.state = 'draft'
 
     ###################################################
 

@@ -37,11 +37,40 @@
                                         <strong style="font-weight:bold;font-size:12px;">Pay by:</strong>&#160; <span style="font-size:12px;margin-left:50px;" t-field="o.journal_id"/>
                                         <strong style="font-weight:bold;font-size:12px;">Status:</strong>&#160; <span style="font-size:12px;" t-field="o.state"/>
 
+                                        <!--<strong>Check Number: </strong> <p t-field="o.check_number"/>-->
 
                                     </div>
                                 </ul>
                             </div>
 
+                            <!--<div class="text-left">-->
+                            <!--<div t-if="o.move_id">-->
+                            <!--<strong>Journal Entry: </strong> <p t-field="o.move_id"/>-->
+                            <!--</div>-->
+
+                            <!--</div>-->
+
+                            <!--<div class="text-left">-->
+                            <!--<div t-if="o.state">-->
+                            <!--<strong>Approval State: </strong> <p t-field="o.state"/>-->
+                            <!--</div>-->
+
+                            <!--</div>-->
+
+                            <!--&lt;!&ndash;check Details&ndash;&gt;-->
+                            <!--<div class="text-right">-->
+                            <!--<div t-if="o.check_date">-->
+                            <!--<strong>Check Date: </strong> <p t-field="o.check_date"/>-->
+                            <!--</div>-->
+
+                            <!--</div>-->
+
+                            <!--<div class="text-right">-->
+                            <!--<div t-if="o.check_number">-->
+                            <!--<strong>Check Number: </strong> <p t-field="o.check_number"/>-->
+                            <!--</div>-->
+
+                            <!--</div>-->
                             <br></br>
 
                             <div class="text-right arabic">
